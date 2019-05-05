@@ -213,7 +213,17 @@ var UIController =(function(){
        //Alternative method
        //return (type === "exp" ? "-" : "+") + "" + int + "." + dec;
       };
-  
+      
+
+       //Trick forEachloop for NODLELIST
+       var nodeListForEach = function(list, callback){
+        for(var i = 0;  i < list.length; i++){
+             callback(list[i], i);
+         }
+      };
+
+
+
     //Returns an Object containing the results of the querySelectors
     return {
         getInput: function(){
@@ -293,13 +303,6 @@ var UIController =(function(){
         
        //Select all the percentages classes on the Page
        var fields = document.querySelectorAll(DOMstrings.expensesPercLabel);
-
-       //Homemade forEachloop
-       var nodeListForEach = function(list, callback){
-           for(var i = 0;  i < list.length; i++){
-               callback(list[i], i);
-           }
-       };
        
        //we call the function and we pass the percentages list 
        nodeListForEach(fields, function(current, index){
@@ -324,6 +327,21 @@ var UIController =(function(){
         year = now.getFullYear();
         //Select element on the page and format it
         document.querySelector(DOMstrings.dateLabel).textContent = months[month] + " " + year;
+       },
+
+       //Function to change the color of the input field
+       changedType:  function(){
+        //Select the fields
+        var fields = document.querySelectorAll(DOMstrings.inputType + "," + DOMstrings.inputDescription + "," + DOMstrings.inputValue);
+        
+        //Loop over and apply the colour
+        nodeListForEach(fields, function(cur){
+            cur.classList.toggle("red-focus");
+
+        });
+       
+        document.querySelector(DOMstrings.inputBtn).classList.toggle("red");
+
        },
 
        // EXPORT DOMstrings var
@@ -354,7 +372,10 @@ var controller = (function(budgetCtrl, UICtrl){
         
          //Event Delgation Bubbling and Traversing the DOM to delete
         document.querySelector(DOM.container).addEventListener("click", ctrlDeleteItem);
-    }
+
+        //Change Event, to change the colour of the Input field depending on the type of input
+        document.querySelector(DOM.inputType).addEventListener("change", UICtrl.changedType);
+    };
 
     var updateBudget = function(){
         
