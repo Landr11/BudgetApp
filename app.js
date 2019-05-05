@@ -25,7 +25,7 @@ var budgetController =(function(){
     Expense.prototype.getPercentages = function(){
         return this.percentage;
     };
-   
+
 
     var Income = function(id, description, value){
         this.id = id;
@@ -173,12 +173,50 @@ var UIController =(function(){
         expensesLabel:".budget__expenses--value",
         percentageLabel:".budget__expenses--percentage",
         container:".container", 
-        expensesPercLabel: ".item__percentage"
+        expensesPercLabel: ".item__percentage",
+        dateLabel: ".budget__title--month"
     };
+
+    //Formating the numbers for the UI
+    var formatNumber = function(num, type){
+        /* add + or - before numbers
+        exactly 2 decimal points
+        comma seperating the thousands */
+        
+       var numSplit, int, dec, type, sign;
+
+
+
+       //Remove the sign in front of the number
+        num = Math.abs(num);
+       //add the decimals
+        num = num.toFixed(2);
+       //Comma for the thousounds
+       // 1. Split the number user the slpit method (stored in an array)
+       numSplit = num.split(".");
+       // 2. Store the first part
+       int = numSplit[0];
+       if (int.length > 3){
+           //Cut -3  to always capture the thousounds 
+           int  = int.substr(0, int.length - 3) + "," + int.substr(int.length - 3, 3);
+       }
+
+       // 3. Store the second part
+       dec = numSplit[1];
+
+       //Use ternary operator to check the sign
+       type === "exp" ? sign = "-" : sign = "+";
+
+       //Return the formatted number
+       return sign + "" + int + "." + dec;
+
+       //Alternative method
+       //return (type === "exp" ? "-" : "+") + "" + int + "." + dec;
+      };
   
     //Returns an Object containing the results of the querySelectors
-   return {
-       getInput: function(){
+    return {
+        getInput: function(){
            return {
             type:        document.querySelector(DOMstrings.inputType).value, // will be either inc or exp
             description: document.querySelector(DOMstrings.inputDescription).value,
@@ -203,7 +241,7 @@ var UIController =(function(){
         // Replace the placeholder text with data
         newHtml = html.replace("%id%", obj.id);
         newHtml = newHtml.replace("%description%", obj.description);
-        newHtml = newHtml.replace("%value%", obj.value);
+        newHtml = newHtml.replace("%value%", formatNumber(obj.value, type));
 
         // Insert the HTML into the DOM
         document.querySelector(element).insertAdjacentHTML("beforeend", newHtml);
@@ -235,9 +273,13 @@ var UIController =(function(){
 
        //Display the Budgets in the UI
        displayBudget: function(obj){
-           document.querySelector(DOMstrings.budgetLabel).textContent = obj.budget;
-           document.querySelector(DOMstrings.incomeLabel).textContent = obj.totalInc;
-           document.querySelector(DOMstrings.expensesLabel).textContent = obj.totalExp;
+           var type;
+
+          obj.budget > 0 ? type = "inc" : type = "exp";
+
+           document.querySelector(DOMstrings.budgetLabel).textContent = formatNumber(obj.budget, type);
+           document.querySelector(DOMstrings.incomeLabel).textContent = formatNumber(obj.totalInc,"inc");
+           document.querySelector(DOMstrings.expensesLabel).textContent = formatNumber(obj.totalExp, "exp");
            
          if(obj.percentage > 0){
             document.querySelector(DOMstrings.percentageLabel).textContent = obj.percentage + "%";
@@ -270,7 +312,19 @@ var UIController =(function(){
           });
        },
 
-
+       // Get the current date to display on the UI
+       displayMonth: function(){
+          var now, year, month, months;
+        //Select the year
+        now = new Date();
+        months = ["january", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+        //Get the month
+        month = now.getMonth();
+        //Get the Fullyear
+        year = now.getFullYear();
+        //Select element on the page and format it
+        document.querySelector(DOMstrings.dateLabel).textContent = months[month] + " " + year;
+       },
 
        // EXPORT DOMstrings var
        getDOMstrings: function(){
@@ -387,6 +441,7 @@ var controller = (function(budgetCtrl, UICtrl){
       return {
           init: function(){
                console.log("The Application has started");
+               UICtrl.displayMonth();
                // 3. Display the budget on the UI
                UICtrl.displayBudget({
                 budget:      0,
